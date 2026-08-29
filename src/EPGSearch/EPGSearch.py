@@ -43,6 +43,10 @@ from functools import reduce
 
 SIGN = '°'
 
+# EDIT THIS before building/deploying to each test binary - it gets stamped
+# into every /tmp/epgsearch_plugin_debug.log line so logs are self-describing.
+DEBUG_BINARY_LABEL = "EDIT_ME_e.g_atv8.0-stock"
+
 
 # Partnerbox installed and icons in epglist enabled?
 try:
