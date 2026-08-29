@@ -672,6 +672,38 @@ class EPGSearch(EPGSelection):
 
 		ret = runFilter("RIBDT", 1000, search_type, searchString, search_case, searchFilter)
 
+		try:
+			from collections import Counter
+
+			# Same logic as EPGSearchList.getOrbitalPos, standalone (no self)
+			def _dbg_orbital(refstr):
+				refstr = refstr and GetWithAlternative(refstr)
+				if not refstr:
+					return "?"
+				if "%3a//" in refstr:
+					return "Stream"
+				try:
+					op = int(refstr.split(":", 10)[6][:-4] or "0", 16)
+				except Exception:
+					return "?"
+				if op == 0xeeee:
+					return "DVB-T"
+				if op == 0xffff:
+					return "DVB-C"
+				direction = "E"
+				if op > 1800:
+					op = 3600 - op
+					direction = "W"
+				return "%d.%d%s" % (op // 10, op % 10, direction)
+
+			orbital_counts = Counter(_dbg_orbital(item[0]) for item in ret)
+
+			with open("/tmp/epgsearch_plugin_debug.log", "a") as dbgf:
+				dbgf.write("binary=%r query=%r search_type_setting=%r search_type_const=%r result_count=%d orbital_breakdown=%r\n" % (
+					DEBUG_BINARY_LABEL, searchString, config.plugins.epgsearch.search_type.value, search_type, len(ret), dict(orbital_counts)))
+		except Exception:
+			pass
+
 		ret.sort(key=itemgetter(2))  # sort by time
 
 		# Update List
